@@ -3,96 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID Card System - Portal</title>
+    <title>Student Registration - Temporary ID Card</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        .portal-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            gap: 30px;
+        .container {
+            max-width: 500px;
         }
-
-        .portal-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            max-width: 700px;
-            width: 100%;
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
         }
-
-        .portal-card {
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .card {
             background: white;
             border-radius: 15px;
-            padding: 40px 30px;
-            text-align: center;
+            padding: 40px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            transition: transform 0.3s, box-shadow 0.3s;
-            text-decoration: none;
-            color: inherit;
+            text-align: center;
         }
-
-        .portal-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .portal-card .icon {
+        .card .icon {
             font-size: 4rem;
             margin-bottom: 20px;
         }
-
-        .portal-card h2 {
+        .card h2 {
             color: #333;
             margin-bottom: 15px;
         }
-
-        .portal-card p {
+        .card p {
             color: #666;
-            font-size: 0.95rem;
+            font-size: 1rem;
             line-height: 1.6;
+            margin-bottom: 25px;
         }
-
-        .portal-card.student {
-            border-top: 5px solid #667eea;
+        .btn-go {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        .portal-card.admin {
-            border-top: 5px solid #28a745;
+        .btn-go:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
-
+        .colleges-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.9rem;
+        }
         @media (max-width: 600px) {
-            .portal-cards {
-                grid-template-columns: 1fr;
-            }
+            header h1 { font-size: 1.8rem; }
+            .card { padding: 30px 20px; }
         }
     </style>
 </head>
 <body>
     <div class="container portal-container">
         <header>
-            <h1>🎓 ID Card System</h1>
-            <p class="subtitle">Temporary ID Card Registration & Verification Portal</p>
+            <h1>🎓 Student Registration</h1>
+            <p class="subtitle">Temporary ID Card Collection</p>
         </header>
 
-        <div class="portal-cards">
-            <a href="student-registration.html" class="portal-card student">
-                <div class="icon">📝</div>
-                <h2>Student Registration</h2>
-                <p>Register here to get your temporary ID card with QR code. Fill in your details and download your ID.</p>
-            </a>
-
-            <a href="admin-scan.html" class="portal-card admin">
-                <div class="icon">📷</div>
-                <h2>Admin Scanner</h2>
-                <p>Scan student QR codes to verify their identity and view their details instantly.</p>
-            </a>
-        </div>
-
-        <div style="text-align: center; color: white; margin-top: 20px;">
-            <p style="opacity: 0.8;">Supported Colleges: TNCE | PCET | PCT</p>
+        <div class="card">
+            <div class="icon">📝</div>
+            <h2>Register for Temporary ID</h2>
+            <p>Fill in your details to receive a QR code via email. Show the QR code from your email when reporting to college.</p>
+            <a href="student-registration.html" class="btn-go">Go to Registration Form</a>
+            <div class="colleges-list">
+                Supported Colleges: Tamil Nadu College of Engineering (TNCE) · Park College of Engineering and Technology (PCET) · Park College of Technology (PCT)
+            </div>
         </div>
     </div>
 </body>
