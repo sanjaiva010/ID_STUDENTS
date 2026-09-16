@@ -10,31 +10,72 @@ document.addEventListener('DOMContentLoaded', function() {
     const sentEmailEl = document.getElementById('sentEmail');
     const submitBtn = document.getElementById('submitBtn');
 
-    let currentQRCode = null;
-
-    // Initialize EmailJS (replace with your credentials)
+    // Initialize EmailJS
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
 
-    // Update courses when college changes
+    // Update courses when college changes (show UG courses first, then B.Tech)
     collegeSelect.addEventListener('change', function() {
         const selectedCollege = this.value;
         courseSelect.innerHTML = '<option value="">Loading courses...</option>';
         courseSelect.disabled = true;
 
         if (selectedCollege && collegesData[selectedCollege]) {
-            const courses = collegesData[selectedCollege].courses;
-            courseSelect.innerHTML = '<option value="">Select Course</option>';
+            const college = collegesData[selectedCollege];
             
-            courses.forEach(course => {
-                const option = document.createElement('option');
-                option.value = course.code;
-                option.textContent = `${course.code} - ${course.name}`;
-                courseSelect.appendChild(option);
-            });
+            // Show UG courses first, then B.Tech
+            let allCourses = [];
+            
+            // Add UG courses
+            if (college.courses) {
+                college.courses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.code;
+                    option.textContent = `${course.code} - ${course.name}`;
+                    courseSelect.appendChild(option);
+                    allCourses.push(course.code);
+                });
+            }
+            
+            // Add B.Tech courses
+            if (college.bTech) {
+                college.bTech.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.code;
+                    option.textContent = `${course.code} - ${course.name}`;
+                    courseSelect.appendChild(option);
+                    allCourses.push(course.code);
+                });
+            }
             
             courseSelect.disabled = false;
+            
+            // Add "Select B.Tech Course" option after UG courses
+            const bTechOption = document.createElement('option');
+            bTechOption.value = "btech";
+            bTechOption.textContent = "B.Tech Courses";
+            bDogOption.disabled = true;
+            courseSelect.appendChild(bTechOption);
         } else {
             courseSelect.innerHTML = '<option value="">Select college first</option>';
+        }
+    });
+
+    // Handle course type change (UG vs B.Tech)
+    courseSelect.addEventListener('change', function() {
+        if (this.value === "btech") {
+            // Show B.Tech courses only
+            courseSelect.innerHTML = '<option value="">Select B.Tech Course</option>';
+            const selectedCollege = document.getElementById('college').value;
+            if (selectedCollege && collegesData[selectedCollege] && collegesData[selectedCollege].bTech) {
+                collegesData[selectedCollege].bTech.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.code;
+                    option.textContent = `${course.code} - ${course.name}`;
+                    courseSelect.appendChild(option);
+                });
+            }
+        } else {
+            // UG course selected - keep as is
         }
     });
 
@@ -96,13 +137,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Collect form data
+        const selectedCollege = collegeSelect.value;
+        const selectedCourse = courseSelect.value;
+        const collegeInfo = collegesData[selectedCollege];
+        
+        // Determine course name based on selection
+        let courseName;
+        if (selectedCourse === "btech" && collegeInfo.bTech) {
+            // Show B.Tech courses list in the name
+            const bTechCourses = collegeInfo.bTech.map(c => `${c.code} - ${c.name}`);
+            courseName = `B.Tech: ${bTechCourses.join(', ')}`;
+        } else if (collegeInfo.courses) {
+            const courseObj = collegeInfo.courses.find(c => c.code === selectedCourse);
+            courseName = courseObj ? `${selectedCourse} - ${courseObj.name}` : selectedCourse;
+        } else {
+            courseName = selectedCourse;
+        }
+
         const studentData = {
             name: name,
             regNo: document.getElementById('regNo').value.trim(),
             studentType: document.getElementById('studentType').value,
             bloodGroup: bloodGroupSelect.value === 'other' ? otherBloodInput.value.trim().toUpperCase() : bloodGroupSelect.value,
-            college: collegeSelect.value,
-            course: courseSelect.value,
+            college: selectedCollege,
+            course: selectedCourse,
+            courseName: courseName,
             address: document.getElementById('address').value.trim(),
             dadPhone: document.getElementById('dadPhone').value.trim(),
             studentPhone: document.getElementById('studentPhone').value.trim(),
@@ -110,12 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
             timestamp: new Date().toISOString(),
             id: generateStudentId()
         };
-
-        // Get college and course names
-        const collegeInfo = collegesData[studentData.college];
-        const collegeName = collegeInfo.name;
-        const courseObj = collegeInfo.courses.find(c => c.code === studentData.course);
-        const courseName = courseObj ? courseObj.name : studentData.course;
 
         // Show loading state
         submitBtn.disabled = true;
@@ -140,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveStudentData(studentData);
 
             // Send email with QR code
-            await sendEmail(studentData, qrDataUrl, collegeName, courseName);
+            await sendEmail(studentData, qrDataUrl, collegeInfo.fullName, courseName);
 
             // Show success modal
             sentEmailEl.textContent = studentData.email;
@@ -151,13 +204,14 @@ document.addEventListener('DOMContentLoaded', function() {
             otherBloodContainer.style.display = 'none';
             courseSelect.innerHTML = '<option value="">Select college first</option>';
             courseSelect.disabled = true;
+            document.getElementById('course').disabled = true;
 
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to send email. Please check your EmailJS configuration.\n\nError: ' + error.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Register & Send to Email';
+            submitBtn.textContent = 'Register & Send QR to Email';
         }
     });
 
@@ -181,7 +235,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            // Wait for QR code to render
             setTimeout(() => {
                 const img = tempDiv.querySelector('img');
                 if (img) {
@@ -201,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
             student_name: studentData.name,
             reg_no: studentData.regNo,
             college: collegeName,
-            course: `${studentData.course} - ${courseName}`,
+            course: courseName,
             student_type: studentData.studentType === 'hosteller' ? 'Hosteller' : 'Day Scholar',
             blood_group: studentData.bloodGroup,
             address: studentData.address,
@@ -212,9 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             date: new Date().toLocaleDateString()
         };
 
-        // Using EmailJS service
-        // You need to set up EmailJS account and create a template
-        // Replace with your actual service ID and template ID
+        // Send via EmailJS - you need to configure your service/template
         const response = await emailjs.send(
             'YOUR_EMAILJS_SERVICE_ID',
             'YOUR_EMAILJS_TEMPLATE_ID',
