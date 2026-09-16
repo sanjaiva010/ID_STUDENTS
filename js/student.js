@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeSuccess = document.getElementById('closeSuccess');
     const sentEmailEl = document.getElementById('sentEmail');
     const submitBtn = document.getElementById('submitBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadMsg = document.getElementById('downloadMsg');
+    const qrIdEl = document.getElementById('qrId');
+    const qrNameEl = document.getElementById('qrName');
+    const qrCodeDisplay = document.getElementById('qrCodeDisplay');
 
     // Initialize EmailJS
     emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
@@ -48,13 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             courseSelect.disabled = false;
-            
-            // Add "Select B.Tech Course" option after UG courses
-            const bTechOption = document.createElement('option');
-            bTechOption.value = "btech";
-            bTechOption.textContent = "B.Tech Courses";
-            bDogOption.disabled = true;
-            courseSelect.appendChild(bTechOption);
         } else {
             courseSelect.innerHTML = '<option value="">Select college first</option>';
         }
@@ -74,8 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     courseSelect.appendChild(option);
                 });
             }
-        } else {
-            // UG course selected - keep as is
         }
     });
 
@@ -144,7 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Determine course name based on selection
         let courseName;
         if (selectedCourse === "btech" && collegeInfo.bTech) {
-            // Show B.Tech courses list in the name
             const bTechCourses = collegeInfo.bTech.map(c => `${c.code} - ${c.name}`);
             courseName = `B.Tech: ${bTechCourses.join(', ')}`;
         } else if (collegeInfo.courses) {
@@ -192,6 +187,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Save to localStorage
             saveStudentData(studentData);
 
+            // Display QR code in success modal
+            displayQRInModal(qrDataUrl, studentData);
+
             // Send email with QR code
             await sendEmail(studentData, qrDataUrl, collegeInfo.fullName, courseName);
 
@@ -204,8 +202,6 @@ document.addEventListener('DOMContentLoaded', function() {
             otherBloodContainer.style.display = 'none';
             courseSelect.innerHTML = '<option value="">Select college first</option>';
             courseSelect.disabled = true;
-            document.getElementById('course').disabled = true;
-
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to send email. Please check your EmailJS configuration.\n\nError: ' + error.message);
@@ -246,37 +242,53 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Send email using EmailJS
-    async function sendEmail(studentData, qrDataUrl, collegeName, courseName) {
-        const templateParams = {
-            to_email: studentData.email,
-            to_name: studentData.name,
-            student_name: studentData.name,
-            reg_no: studentData.regNo,
-            college: collegeName,
-            course: courseName,
-            student_type: studentData.studentType === 'hosteller' ? 'Hosteller' : 'Day Scholar',
-            blood_group: studentData.bloodGroup,
-            address: studentData.address,
-            dad_phone: studentData.dadPhone,
-            student_phone: studentData.studentPhone || 'Not provided',
-            qr_code_image: qrDataUrl,
-            student_id: studentData.id,
-            date: new Date().toLocaleDateString()
+    // Display QR code in success modal
+    function displayQRInModal(qrDataUrl, studentData) {
+        // Show QR code image
+        qrCodeDisplay.innerHTML = '';
+        new QRCode(qrCodeDisplay, {
+            text: qrDataUrl,
+            width: 150,
+            height: 150,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        // Show QR data
+        qrIdEl.textContent = studentData.id;
+        qrNameEl.textContent = studentData.name;
+
+        // Show download button
+        downloadBtn.style.display = 'block';
+        downloadMsg.style.display = 'block';
+
+        // Handle download
+        downloadBtn.onclick = function() {
+            downloadQRCode(qrDataUrl);
         };
+    }
 
-        // Send via EmailJS - you need to configure your service/template
-        const response = await emailjs.send(
-            'YOUR_EMAILJS_SERVICE_ID',
-            'YOUR_EMAILJS_TEMPLATE_ID',
-            templateParams
-        );
-
-        if (response.status !== 200) {
-            throw new Error('Email sending failed');
-        }
-
-        return response;
+    // Download QR code
+    function downloadQRCode(qrDataUrl) {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.download = `QR_Code_${qrIdEl.textContent}.png`;
+        link.href = qrDataUrl;
+        link.dataset.downloadurl = ['image/png', link.download, link.href].join(':');
+        
+        // Trigger click
+        link.click();
+        
+        // Show success message
+        downloadBtn.textContent = '✓ Downloaded!';
+        downloadMsg.textContent = 'QR saved to your device! Save to photo album manually.';
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+            downloadBtn.textContent = '📥 Download QR Code';
+            downloadMsg.textContent = 'Click Download to save QR to your phone gallery';
+        }, 2000);
     }
 
     // Save student data to localStorage

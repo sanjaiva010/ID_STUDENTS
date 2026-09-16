@@ -110,10 +110,21 @@
                 <div class="success-icon">✓</div>
                 <h2>Registration Successful!</h2>
                 <p class="success-message">Your QR code and registration details have been sent to <strong id="sentEmail"></strong></p>
-                <div class="qr-instruction">
-                    <p>📧 <strong>Check your email</strong> for the QR code</p>
-                    <p class="instruction-text">Show the QR code from your email while reporting to college</p>
+                
+                <!-- QR Code Display Area -->
+                <div class="qr-display-area">
+                    <h3>Your QR Code</h3>
+                    <div id="qrCodeDisplay"></div>
+                    <p class="qr-data-text">QR Data: ID = <span id="qrId"></span>, Name = <span id="qrName"></span></p>
                 </div>
+
+                <div class="qr-instruction">
+                    <p>📧 <strong>Check your email</strong> for the full ID card</p>
+                    <p class="instruction-text">Show the QR code from your email while reporting to college</p>
+                    <button id="downloadBtn" class="btn-download" style="display:none; margin-top:15px; width:auto;">📥 Download QR Code</button>
+                    <p id="downloadMsg" style="margin-top:10; font-size:0.8rem; color: #666;">Click Download to save QR to your phone gallery</p>
+                </div>
+
                 <button id="closeSuccess" class="btn-submit">Close</button>
             </div>
         </div>
