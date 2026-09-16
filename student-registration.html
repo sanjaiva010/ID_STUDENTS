@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration - Temporary ID Card</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -15,11 +16,12 @@
         </header>
 
         <div class="form-container">
-            <form id="registrationForm">
+            <form id="registrationForm" novalidate>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="studentName">Full Name *</label>
-                        <input type="text" id="studentName" name="studentName" required placeholder="Enter your full name">
+                        <input type="text" id="studentName" name="studentName" required placeholder="Enter your full name" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed">
+                        <span class="error-msg" id="nameError"></span>
                     </div>
                     <div class="form-group">
                         <label for="regNo">Registration Number *</label>
@@ -48,8 +50,15 @@
                             <option value="O-">O-</option>
                             <option value="AB+">AB+</option>
                             <option value="AB-">AB-</option>
+                            <option value="other">Others</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-group" id="otherBloodGroupContainer" style="display:none;">
+                    <label for="otherBloodGroup">Specify Blood Group *</label>
+                    <input type="text" id="otherBloodGroup" name="otherBloodGroup" placeholder="Enter your blood group" pattern="[A-Za-z0-9+\-]+" title="Valid blood group format (e.g., A+, B-, O+)">
+                    <span class="error-msg" id="otherBloodError"></span>
                 </div>
 
                 <div class="form-row">
@@ -58,8 +67,8 @@
                         <select id="college" name="college" required>
                             <option value="">Select College</option>
                             <option value="tnce">Tamil Nadu College of Engineering</option>
-                            <option value="pcet">Park College of Engineering and Tech</option>
-                            <option value="pct">Park College of Tech</option>
+                            <option value="pcet">Park College of Engineering and Technology</option>
+                            <option value="pct">Park College of Technology</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -91,41 +100,21 @@
                     <input type="email" id="email" name="email" required placeholder="your.email@example.com">
                 </div>
 
-                <button type="submit" class="btn-submit">Register & Generate ID</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Register & Send to Email</button>
             </form>
         </div>
 
-        <!-- ID Card Preview Modal -->
-        <div id="idCardModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal">&times;</span>
-                <h2>Your Temporary ID Card</h2>
-                <div class="id-card" id="idCard">
-                    <div class="id-card-header">
-                        <div class="college-logo">🎓</div>
-                        <h3 id="cardCollege">College Name</h3>
-                    </div>
-                    <div class="id-card-body">
-                        <div class="student-photo" id="studentPhoto">
-                            <span>Photo</span>
-                        </div>
-                        <div class="student-info">
-                            <p><strong>Name:</strong> <span id="cardName"></span></p>
-                            <p><strong>Reg No:</strong> <span id="cardRegNo"></span></p>
-                            <p><strong>Course:</strong> <span id="cardCourse"></span></p>
-                            <p><strong>Type:</strong> <span id="cardType"></span></p>
-                            <p><strong>Blood Group:</strong> <span id="cardBlood"></span></p>
-                        </div>
-                    </div>
-                    <div class="id-card-footer">
-                        <div id="qrcode"></div>
-                        <p class="valid-text">Valid for 30 days from issue</p>
-                    </div>
+        <!-- Success Message Modal -->
+        <div id="successModal" class="modal">
+            <div class="modal-content success-content">
+                <div class="success-icon">✓</div>
+                <h2>Registration Successful!</h2>
+                <p class="success-message">Your QR code and registration details have been sent to <strong id="sentEmail"></strong></p>
+                <div class="qr-instruction">
+                    <p>📧 <strong>Check your email</strong> for the QR code</p>
+                    <p class="instruction-text">Show the QR code from your email while reporting to college</p>
                 </div>
-                <div class="modal-actions">
-                    <button id="downloadCard" class="btn-download">Download ID Card</button>
-                    <button id="sendEmail" class="btn-email">Send to Email</button>
-                </div>
+                <button id="closeSuccess" class="btn-submit">Close</button>
             </div>
         </div>
     </div>

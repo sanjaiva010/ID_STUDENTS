@@ -2,13 +2,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('registrationForm');
     const collegeSelect = document.getElementById('college');
     const courseSelect = document.getElementById('course');
-    const modal = document.getElementById('idCardModal');
-    const closeModal = document.querySelector('.close-modal');
-    const downloadBtn = document.getElementById('downloadCard');
-    const sendEmailBtn = document.getElementById('sendEmail');
+    const bloodGroupSelect = document.getElementById('bloodGroup');
+    const otherBloodContainer = document.getElementById('otherBloodGroupContainer');
+    const otherBloodInput = document.getElementById('otherBloodGroup');
+    const successModal = document.getElementById('successModal');
+    const closeSuccess = document.getElementById('closeSuccess');
+    const sentEmailEl = document.getElementById('sentEmail');
+    const submitBtn = document.getElementById('submitBtn');
 
     let currentQRCode = null;
-    let studentData = null;
+
+    // Initialize EmailJS (replace with your credentials)
+    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
 
     // Update courses when college changes
     collegeSelect.addEventListener('change', function() {
@@ -33,16 +38,69 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Handle blood group "Others" option
+    bloodGroupSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+            otherBloodContainer.style.display = 'block';
+            otherBloodInput.required = true;
+        } else {
+            otherBloodContainer.style.display = 'none';
+            otherBloodInput.required = false;
+            otherBloodInput.value = '';
+        }
+    });
+
+    // Name validation - only letters and spaces
+    document.getElementById('studentName').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+    });
+
+    // Phone validation - only numbers, max 10 digits
+    document.getElementById('dadPhone').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10);
+    });
+
+    document.getElementById('studentPhone').addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10);
+    });
+
+    // Other blood group validation
+    otherBloodInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^A-Za-z0-9+\-]/g, '').toUpperCase();
+    });
+
     // Form submission
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
+        // Validate name
+        const name = document.getElementById('studentName').value.trim();
+        if (!/^[A-Za-z\s]+$/.test(name)) {
+            showError('nameError', 'Only letters and spaces allowed');
+            return;
+        }
+        hideError('nameError');
+
+        // Validate other blood group if selected
+        if (bloodGroupSelect.value === 'other') {
+            const otherBlood = otherBloodInput.value.trim();
+            if (!otherBlood) {
+                showError('otherBloodError', 'Please specify blood group');
+                return;
+            }
+            if (!/^[A-Za-z0-9+\-]+$/.test(otherBlood)) {
+                showError('otherBloodError', 'Invalid blood group format');
+                return;
+            }
+            hideError('otherBloodError');
+        }
+
         // Collect form data
-        studentData = {
-            name: document.getElementById('studentName').value.trim(),
+        const studentData = {
+            name: name,
             regNo: document.getElementById('regNo').value.trim(),
             studentType: document.getElementById('studentType').value,
-            bloodGroup: document.getElementById('bloodGroup').value,
+            bloodGroup: bloodGroupSelect.value === 'other' ? otherBloodInput.value.trim().toUpperCase() : bloodGroupSelect.value,
             college: collegeSelect.value,
             course: courseSelect.value,
             address: document.getElementById('address').value.trim(),
@@ -54,26 +112,53 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // Get college and course names
-        const collegeName = collegesData[studentData.college].name;
-        const courseObj = collegesData[studentData.college].courses.find(c => c.code === studentData.course);
+        const collegeInfo = collegesData[studentData.college];
+        const collegeName = collegeInfo.name;
+        const courseObj = collegeInfo.courses.find(c => c.code === studentData.course);
         const courseName = courseObj ? courseObj.name : studentData.course;
 
-        // Update ID card
-        document.getElementById('cardCollege').textContent = collegeName;
-        document.getElementById('cardName').textContent = studentData.name;
-        document.getElementById('cardRegNo').textContent = studentData.regNo;
-        document.getElementById('cardCourse').textContent = `${studentData.course} - ${courseName}`;
-        document.getElementById('cardType').textContent = studentData.studentType === 'hosteller' ? 'Hosteller' : 'Day Scholar';
-        document.getElementById('cardBlood').textContent = studentData.bloodGroup;
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Sending...';
 
-        // Generate QR Code
-        generateQRCode(studentData);
+        try {
+            // Generate QR Code data
+            const qrData = JSON.stringify({
+                id: studentData.id,
+                name: studentData.name,
+                regNo: studentData.regNo,
+                college: collegeInfo.shortName,
+                course: studentData.course,
+                type: studentData.studentType,
+                blood: studentData.bloodGroup
+            });
 
-        // Save to localStorage
-        saveStudentData(studentData);
+            // Generate QR code as data URL
+            const qrDataUrl = await generateQRCodeDataUrl(qrData);
 
-        // Show modal
-        modal.style.display = 'block';
+            // Save to localStorage
+            saveStudentData(studentData);
+
+            // Send email with QR code
+            await sendEmail(studentData, qrDataUrl, collegeName, courseName);
+
+            // Show success modal
+            sentEmailEl.textContent = studentData.email;
+            successModal.style.display = 'block';
+
+            // Reset form
+            form.reset();
+            otherBloodContainer.style.display = 'none';
+            courseSelect.innerHTML = '<option value="">Select college first</option>';
+            courseSelect.disabled = true;
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send email. Please check your EmailJS configuration.\n\nError: ' + error.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Register & Send to Email';
+        }
     });
 
     // Generate unique student ID
@@ -83,29 +168,64 @@ document.addEventListener('DOMContentLoaded', function() {
         return `STU-${timestamp}-${randomStr}`.toUpperCase();
     }
 
-    // Generate QR Code
-    function generateQRCode(data) {
-        const qrContainer = document.getElementById('qrcode');
-        qrContainer.innerHTML = '';
+    // Generate QR code as data URL
+    function generateQRCodeDataUrl(text) {
+        return new Promise((resolve, reject) => {
+            const tempDiv = document.createElement('div');
+            new QRCode(tempDiv, {
+                text: text,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
 
-        const qrData = JSON.stringify({
-            id: data.id,
-            name: data.name,
-            regNo: data.regNo,
-            college: collegesData[data.college].shortName,
-            course: data.course,
-            type: data.studentType,
-            blood: data.bloodGroup
+            // Wait for QR code to render
+            setTimeout(() => {
+                const img = tempDiv.querySelector('img');
+                if (img) {
+                    resolve(img.src);
+                } else {
+                    reject(new Error('QR code generation failed'));
+                }
+            }, 100);
         });
+    }
 
-        currentQRCode = new QRCode(qrContainer, {
-            text: qrData,
-            width: 150,
-            height: 150,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+    // Send email using EmailJS
+    async function sendEmail(studentData, qrDataUrl, collegeName, courseName) {
+        const templateParams = {
+            to_email: studentData.email,
+            to_name: studentData.name,
+            student_name: studentData.name,
+            reg_no: studentData.regNo,
+            college: collegeName,
+            course: `${studentData.course} - ${courseName}`,
+            student_type: studentData.studentType === 'hosteller' ? 'Hosteller' : 'Day Scholar',
+            blood_group: studentData.bloodGroup,
+            address: studentData.address,
+            dad_phone: studentData.dadPhone,
+            student_phone: studentData.studentPhone || 'Not provided',
+            qr_code_image: qrDataUrl,
+            student_id: studentData.id,
+            date: new Date().toLocaleDateString()
+        };
+
+        // Using EmailJS service
+        // You need to set up EmailJS account and create a template
+        // Replace with your actual service ID and template ID
+        const response = await emailjs.send(
+            'YOUR_EMAILJS_SERVICE_ID',
+            'YOUR_EMAILJS_TEMPLATE_ID',
+            templateParams
+        );
+
+        if (response.status !== 200) {
+            throw new Error('Email sending failed');
+        }
+
+        return response;
     }
 
     // Save student data to localStorage
@@ -115,47 +235,32 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('students', JSON.stringify(students));
     }
 
-    // Close modal
-    closeModal.addEventListener('click', function() {
-        modal.style.display = 'none';
+    // Error handling
+    function showError(elementId, message) {
+        const errorEl = document.getElementById(elementId);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    }
+
+    function hideError(elementId) {
+        const errorEl = document.getElementById(elementId);
+        if (errorEl) {
+            errorEl.textContent = '';
+            errorEl.style.display = 'none';
+        }
+    }
+
+    // Close success modal
+    closeSuccess.addEventListener('click', function() {
+        successModal.style.display = 'none';
     });
 
     // Close modal on outside click
     window.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.style.display = 'none';
+        if (e.target === successModal) {
+            successModal.style.display = 'none';
         }
-    });
-
-    // Download ID Card
-    downloadBtn.addEventListener('click', function() {
-        const idCard = document.getElementById('idCard');
-        
-        // Use html2canvas if available, otherwise show alert
-        if (typeof html2canvas !== 'undefined') {
-            html2canvas(idCard).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `ID_Card_${studentData.regNo}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
-        } else {
-            alert('Download feature requires html2canvas library. For now, you can take a screenshot of the ID card.');
-        }
-    });
-
-    // Send to Email (simulated)
-    sendEmailBtn.addEventListener('click', function() {
-        const email = document.getElementById('email').value;
-        alert(`ID Card would be sent to: ${email}\n\nNote: This is a demo. In production, this would send an actual email with the QR code.`);
-    });
-
-    // Phone number validation - only allow numbers
-    document.getElementById('dadPhone').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10);
-    });
-
-    document.getElementById('studentPhone').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '').substring(0, 10);
     });
 });

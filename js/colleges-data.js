@@ -14,7 +14,7 @@ const collegesData = {
         ]
     },
     pcet: {
-        name: "Park College of Engineering and Tech",
+        name: "Park College of Engineering and Technology",
         shortName: "PCET",
         courses: [
             { code: "CSE", name: "Computer Science and Engineering" },
@@ -28,7 +28,7 @@ const collegesData = {
         ]
     },
     pct: {
-        name: "Park College of Tech",
+        name: "Park College of Technology",
         shortName: "PCT",
         courses: [
             { code: "CSE", name: "Computer Science and Engineering" },
