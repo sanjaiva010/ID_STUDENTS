@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration - Temporary ID Card</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Student Registration</h1>
+            <p class="subtitle">Temporary ID Card Collection</p>
+        </header>
+
+        <div class="form-container">
+            <form id="registrationForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="studentName">Full Name *</label>
+                        <input type="text" id="studentName" name="studentName" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="regNo">Registration Number *</label>
+                        <input type="text" id="regNo" name="regNo" required placeholder="Enter your reg number">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="studentType">Student Type *</label>
+                        <select id="studentType" name="studentType" required>
+                            <option value="">Select Type</option>
+                            <option value="hosteller">Hosteller</option>
+                            <option value="dayscholar">Day Scholar</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group *</label>
+                        <select id="bloodGroup" name="bloodGroup" required>
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="college">College *</label>
+                        <select id="college" name="college" required>
+                            <option value="">Select College</option>
+                            <option value="tnce">Tamil Nadu College of Engineering</option>
+                            <option value="pcet">Park College of Engineering and Tech</option>
+                            <option value="pct">Park College of Tech</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="course">Course / Branch *</label>
+                        <select id="course" name="course" required disabled>
+                            <option value="">Select college first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address *</label>
+                    <textarea id="address" name="address" required placeholder="Enter your full address" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dadPhone">Father's Phone Number *</label>
+                        <input type="tel" id="dadPhone" name="dadPhone" required placeholder="10-digit phone number" pattern="[0-9]{10}">
+                    </div>
+                    <div class="form-group">
+                        <label for="studentPhone">Your Phone Number</label>
+                        <input type="tel" id="studentPhone" name="studentPhone" placeholder="10-digit phone number" pattern="[0-9]{10}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                </div>
+
+                <button type="submit" class="btn-submit">Register & Generate ID</button>
+            </form>
+        </div>
+
+        <!-- ID Card Preview Modal -->
+        <div id="idCardModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Your Temporary ID Card</h2>
+                <div class="id-card" id="idCard">
+                    <div class="id-card-header">
+                        <div class="college-logo">🎓</div>
+                        <h3 id="cardCollege">College Name</h3>
+                    </div>
+                    <div class="id-card-body">
+                        <div class="student-photo" id="studentPhoto">
+                            <span>Photo</span>
+                        </div>
+                        <div class="student-info">
+                            <p><strong>Name:</strong> <span id="cardName"></span></p>
+                            <p><strong>Reg No:</strong> <span id="cardRegNo"></span></p>
+                            <p><strong>Course:</strong> <span id="cardCourse"></span></p>
+                            <p><strong>Type:</strong> <span id="cardType"></span></p>
+                            <p><strong>Blood Group:</strong> <span id="cardBlood"></span></p>
+                        </div>
+                    </div>
+                    <div class="id-card-footer">
+                        <div id="qrcode"></div>
+                        <p class="valid-text">Valid for 30 days from issue</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="downloadCard" class="btn-download">Download ID Card</button>
+                    <button id="sendEmail" class="btn-email">Send to Email</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/colleges-data.js"></script>
+    <script src="js/student.js"></script>
+</body>
+</html>

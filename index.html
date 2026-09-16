@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card System - Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .portal-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            gap: 30px;
+        }
+
+        .portal-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .portal-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .portal-card .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .portal-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .portal-card p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .portal-card.student {
+            border-top: 5px solid #667eea;
+        }
+
+        .portal-card.admin {
+            border-top: 5px solid #28a745;
+        }
+
+        @media (max-width: 600px) {
+            .portal-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container portal-container">
+        <header>
+            <h1>🎓 ID Card System</h1>
+            <p class="subtitle">Temporary ID Card Registration & Verification Portal</p>
+        </header>
+
+        <div class="portal-cards">
+            <a href="student-registration.html" class="portal-card student">
+                <div class="icon">📝</div>
+                <h2>Student Registration</h2>
+                <p>Register here to get your temporary ID card with QR code. Fill in your details and download your ID.</p>
+            </a>
+
+            <a href="admin-scan.html" class="portal-card admin">
+                <div class="icon">📷</div>
+                <h2>Admin Scanner</h2>
+                <p>Scan student QR codes to verify their identity and view their details instantly.</p>
+            </a>
+        </div>
+
+        <div style="text-align: center; color: white; margin-top: 20px;">
+            <p style="opacity: 0.8;">Supported Colleges: TNCE | PCET | PCT</p>
+        </div>
+    </div>
+</body>
+</html>
