@@ -289,35 +289,53 @@ document.addEventListener('DOMContentLoaded', function() {
         closeSuccess.textContent = "I've Downloaded It — Close";
     }
 
+    // Only iOS actually needs the Share Sheet - it's the sole platform that
+    // blocks silent/direct downloads. Everywhere else, a real download works.
+    function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
+    }
+
     // Download QR code
     async function downloadQRCode(qrDataUrl) {
         const filename = `QR_Code_${qrIdEl.textContent}.png`;
         const blob = dataUrlToBlob(qrDataUrl);
 
-        // 1) Best option on phones: the native Share Sheet. iOS and modern
-        // Android browsers show a one-tap "Save Image" / "Save to Photos"
-        // button here - no long-press guesswork needed.
-        try {
-            const file = new File([blob], filename, { type: 'image/png' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Student QR Code'
-                });
-                markQRSaved('✅ Saved via the share menu. You can download it again anytime.');
-                return;
+        if (isIOS()) {
+            // iOS Safari blocks any silent/direct download - the Share Sheet's
+            // one-tap "Save Image" is the most direct option Apple allows.
+            try {
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'Student QR Code' });
+                    markQRSaved('✅ Saved via the share menu. You can download it again anytime.');
+                    return;
+                }
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    downloadMsg.textContent = 'Cancelled — tap Download again to save your QR code.';
+                    return;
+                }
+                console.warn('Share failed on iOS, falling back:', err);
             }
-        } catch (err) {
-            if (err && err.name === 'AbortError') {
-                // Student closed the share sheet without picking anything -
-                // let them try again rather than assuming it's saved.
-                downloadMsg.textContent = 'Cancelled — tap Download again to save your QR code.';
-                return;
+            // No Share API available - last resort: full-screen long-press
+            const win = window.open('', '_blank');
+            if (win) {
+                win.document.write(
+                    '<html><head><title>' + filename + '</title></head>' +
+                    '<body style="margin:0;display:flex;align-items:center;justify-content:center;' +
+                    'min-height:100vh;background:#111;">' +
+                    '<img src="' + qrDataUrl + '" style="max-width:90%;height:auto;">' +
+                    '</body></html>'
+                );
+                win.document.close();
             }
-            console.warn('Share failed, falling back to direct download:', err);
+            markQRSaved('📱 In the new tab, press and hold the QR code, then tap "Save Image" or "Add to Photos".');
+            return;
         }
 
-        // 2) Desktop / browsers without Share API support: a direct Blob download
+        // Android, Windows, Mac (Chrome/Firefox/Edge/Samsung Internet): a real
+        // direct download straight to the Downloads folder, no extra dialog.
         try {
             const blobUrl = URL.createObjectURL(blob);
             const link = document.createElement('a');
