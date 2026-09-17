@@ -7,16 +7,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const otherBloodInput = document.getElementById('otherBloodGroup');
     const successModal = document.getElementById('successModal');
     const closeSuccess = document.getElementById('closeSuccess');
-    const sentEmailEl = document.getElementById('sentEmail');
     const submitBtn = document.getElementById('submitBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadMsg = document.getElementById('downloadMsg');
     const qrIdEl = document.getElementById('qrId');
     const qrNameEl = document.getElementById('qrName');
     const qrCodeDisplay = document.getElementById('qrCodeDisplay');
-
-    // Initialize EmailJS
-    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
 
     // Update courses when college changes (show UG courses first, then B.Tech)
     collegeSelect.addEventListener('change', function() {
@@ -167,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Show loading state
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Sending...';
+        submitBtn.textContent = 'Generating QR...';
 
         try {
             // Generate QR Code data
@@ -190,11 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Display QR code in success modal
             displayQRInModal(qrDataUrl, studentData);
 
-            // Send email with QR code
-            await sendEmail(studentData, qrDataUrl, collegeInfo.fullName, courseName);
-
             // Show success modal
-            sentEmailEl.textContent = studentData.email;
             successModal.style.display = 'block';
 
             // Reset form
@@ -204,10 +196,10 @@ document.addEventListener('DOMContentLoaded', function() {
             courseSelect.disabled = true;
         } catch (error) {
             console.error('Error:', error);
-            alert('Failed to send email. Please check your EmailJS configuration.\n\nError: ' + error.message);
+            alert('Failed to generate QR code. Please try again.\n\nError: ' + error.message);
         } finally {
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Register & Send QR to Email';
+            submitBtn.textContent = 'Register & Generate QR';
         }
     });
 
