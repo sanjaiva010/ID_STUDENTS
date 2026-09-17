@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Registration - Temporary ID Card</title>
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -100,7 +99,7 @@
                     <input type="email" id="email" name="email" required placeholder="your.email@example.com">
                 </div>
 
-                <button type="submit" class="btn-submit" id="submitBtn">Register & Send QR to Email</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Register & Generate QR</button>
             </form>
         </div>
 
@@ -109,8 +108,8 @@
             <div class="modal-content success-content">
                 <div class="success-icon">✓</div>
                 <h2>Registration Successful!</h2>
-                <p class="success-message">Your QR code and registration details have been sent to <strong id="sentEmail"></strong></p>
-                
+                <p class="success-message">Your temporary ID QR code has been generated. Download it now and keep it safe.</p>
+
                 <!-- QR Code Display Area -->
                 <div class="qr-display-area">
                     <h3>Your QR Code</h3>
@@ -119,10 +118,9 @@
                 </div>
 
                 <div class="qr-instruction">
-                    <p>📧 <strong>Check your email</strong> for the full ID card</p>
-                    <p class="instruction-text">Show the QR code from your email while reporting to college</p>
-                    <button id="downloadBtn" class="btn-download" style="display:none; margin-top:15px; width:auto;">📥 Download QR Code</button>
-                    <p id="downloadMsg" style="margin-top:10; font-size:0.8rem; color: #666;">Click Download to save QR to your phone gallery</p>
+                    <p class="instruction-text">📥 Download your QR code and show it while reporting to college</p>
+                    <button id="downloadBtn" class="btn-download" style="margin-top:15px; width:auto;">📥 Download QR Code</button>
+                    <p id="downloadMsg" style="margin-top:10px; font-size:0.8rem; color: #666;">Click Download to save the QR image to your device</p>
                 </div>
 
                 <button id="closeSuccess" class="btn-submit">Close</button>
