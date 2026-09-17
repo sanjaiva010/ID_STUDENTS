@@ -250,9 +250,15 @@ document.addEventListener('DOMContentLoaded', function() {
         qrIdEl.textContent = studentData.id;
         qrNameEl.textContent = studentData.name;
 
-        // Show download button
-        downloadBtn.style.display = 'block';
+        // Reset download/close state for this new registration
+        downloadBtn.style.display = 'inline-block';
+        downloadBtn.disabled = false;
+        downloadBtn.classList.remove('downloaded');
+        downloadBtn.textContent = '📥 DOWNLOAD QR CODE';
         downloadMsg.style.display = 'block';
+        downloadMsg.textContent = 'Tap the button above to save the QR image to your device';
+        closeSuccess.disabled = true;
+        closeSuccess.textContent = 'Download QR Code First';
 
         // Handle download
         downloadBtn.onclick = function() {
@@ -267,19 +273,17 @@ document.addEventListener('DOMContentLoaded', function() {
         link.download = `QR_Code_${qrIdEl.textContent}.png`;
         link.href = qrDataUrl;
         link.dataset.downloadurl = ['image/png', link.download, link.href].join(':');
-        
+
         // Trigger click
         link.click();
-        
-        // Show success message
-        downloadBtn.textContent = '✓ Downloaded!';
-        downloadMsg.textContent = 'QR saved to your device! Save to photo album manually.';
-        
-        // Reset after 2 seconds
-        setTimeout(() => {
-            downloadBtn.textContent = '📥 Download QR Code';
-            downloadMsg.textContent = 'Click Download to save QR to your phone gallery';
-        }, 2000);
+
+        // Mark as downloaded - permanently unlock closing, so students can't
+        // skip past this screen without actually saving their QR code
+        downloadBtn.textContent = '✓ DOWNLOADED';
+        downloadBtn.classList.add('downloaded');
+        downloadMsg.textContent = '✅ QR code downloaded. You can download it again anytime before closing.';
+        closeSuccess.disabled = false;
+        closeSuccess.textContent = "I've Downloaded It — Close";
     }
 
     // Save student data to localStorage
@@ -311,9 +315,9 @@ document.addEventListener('DOMContentLoaded', function() {
         successModal.style.display = 'none';
     });
 
-    // Close modal on outside click
+    // Close modal on outside click - but only if the QR has actually been downloaded
     window.addEventListener('click', function(e) {
-        if (e.target === successModal) {
+        if (e.target === successModal && !closeSuccess.disabled) {
             successModal.style.display = 'none';
         }
     });
