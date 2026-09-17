@@ -266,24 +266,78 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Download QR code
-    function downloadQRCode(qrDataUrl) {
-        // Create a temporary link element
-        const link = document.createElement('a');
-        link.download = `QR_Code_${qrIdEl.textContent}.png`;
-        link.href = qrDataUrl;
-        link.dataset.downloadurl = ['image/png', link.download, link.href].join(':');
+    // Helper: detect iOS, where Safari cannot force-download images -
+    // long-press-to-save is the only reliable option there
+    function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+
+    }
 
-        // Trigger click
-        link.click();
+    // Helper: convert a base64 data URL into a real Blob. Blob-based
+    // downloads work far more reliably across browsers than data URLs do.
+    function dataUrlToBlob(dataUrl) {
+        const [header, base64] = dataUrl.split(',');
+        const mimeMatch = header.match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new Blob([bytes], { type: mime });
+    }
 
-        // Mark as downloaded - permanently unlock closing, so students can't
-        // skip past this screen without actually saving their QR code
+    // Mark the QR as downloaded/saved and unlock the Close button
+    function markQRSaved(message) {
         downloadBtn.textContent = '✓ DOWNLOADED';
         downloadBtn.classList.add('downloaded');
-        downloadMsg.textContent = '✅ QR code downloaded. You can download it again anytime before closing.';
+        downloadMsg.textContent = message;
         closeSuccess.disabled = false;
         closeSuccess.textContent = "I've Downloaded It — Close";
+    }
+
+    // Download QR code
+    function downloadQRCode(qrDataUrl) {
+        const filename = `QR_Code_${qrIdEl.textContent}.png`;
+
+        if (isIOS()) {
+            // iOS Safari ignores the "download" attribute for images, so a
+            // forced download never happens. Instead, open the QR full-screen
+            // in a new tab so the student can press-and-hold to save it.
+            const win = window.open('', '_blank');
+            if (win) {
+                win.document.write(
+                    '<html><head><title>' + filename + '</title></head>' +
+                    '<body style="margin:0;display:flex;align-items:center;justify-content:center;' +
+                    'min-height:100vh;background:#111;">' +
+                    '<img src="' + qrDataUrl + '" style="max-width:90%;height:auto;">' +
+                    '</body></html>'
+                );
+                win.document.close();
+            }
+            markQRSaved('📱 In the new tab, press and hold the QR code, then tap "Add to Photos" or "Save Image".');
+            return;
+        }
+
+        try {
+            // Blob + object URL is the most reliable cross-browser download method
+            const blob = dataUrlToBlob(qrDataUrl);
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+            markQRSaved('✅ QR code downloaded to your device. You can download it again anytime.');
+        } catch (err) {
+            console.error('Download failed, opening image instead:', err);
+            // Last-resort fallback: open the image in a new tab so the
+            // student can manually save it via their browser's own controls
+            window.open(qrDataUrl, '_blank');
+            markQRSaved('QR code opened in a new tab — use your browser\'s save/share option, or press and hold the image to save it.');
+        }
     }
 
     // Save student data to localStorage
