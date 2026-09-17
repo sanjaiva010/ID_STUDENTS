@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const qrIdEl = document.getElementById('qrId');
     const qrNameEl = document.getElementById('qrName');
     const qrCodeDisplay = document.getElementById('qrCodeDisplay');
+    const manualOpenLink = document.getElementById('manualOpenLink');
 
     // Update courses when college changes (show UG courses first, then B.Tech)
     collegeSelect.addEventListener('change', function() {
@@ -259,6 +260,14 @@ document.addEventListener('DOMContentLoaded', function() {
         downloadMsg.textContent = 'Tap the button above to save the QR image to your device';
         closeSuccess.disabled = true;
         closeSuccess.textContent = 'Download QR Code First';
+
+        // Guaranteed manual fallback - this just opens the image itself, which
+        // works even in restrictive in-app browsers where automatic downloads
+        // silently fail (e.g. links opened inside WhatsApp/Instagram)
+        manualOpenLink.href = qrDataUrl;
+        manualOpenLink.onclick = function() {
+            markQRSaved('Opened the QR image — press and hold it, then tap "Save Image" / "Download image".');
+        };
 
         // Handle download
         downloadBtn.onclick = function() {
