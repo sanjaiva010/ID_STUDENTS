@@ -236,16 +236,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Display QR code in success modal
     function displayQRInModal(qrDataUrl, studentData) {
-        // Show QR code image
+        // Show the already-generated QR code image directly (do NOT re-encode
+        // the image data URL into another QR code - it's far too long to fit)
         qrCodeDisplay.innerHTML = '';
-        new QRCode(qrCodeDisplay, {
-            text: qrDataUrl,
-            width: 150,
-            height: 150,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+        const qrImg = document.createElement('img');
+        qrImg.src = qrDataUrl;
+        qrImg.alt = 'Student QR Code';
+        qrImg.width = 150;
+        qrImg.height = 150;
+        qrCodeDisplay.appendChild(qrImg);
 
         // Show QR data
         qrIdEl.textContent = studentData.id;
