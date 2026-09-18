@@ -99,7 +99,7 @@
                     <input type="email" id="email" name="email" required placeholder="your.email@example.com">
                 </div>
 
-                <button type="submit" class="btn-submit" id="submitBtn">Register & Generate QR</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Register & Email My QR Code</button>
             </form>
         </div>
 
@@ -108,7 +108,7 @@
             <div class="modal-content success-content">
                 <div class="success-icon">✓</div>
                 <h2>Registration Successful!</h2>
-                <p class="success-message">Your temporary ID QR code has been generated. Download it now and keep it safe.</p>
+                <p class="success-message">Your QR code is being emailed to <strong id="sentEmail"></strong>. Open that email and show the QR code at entry.</p>
 
                 <!-- QR Code Display Area -->
                 <div class="qr-display-area">
@@ -118,13 +118,14 @@
                 </div>
 
                 <div class="qr-instruction">
-                    <p class="download-warning">⚠️ You MUST download this QR code — it is required for entry.</p>
+                    <p id="emailStatus" class="instruction-text">📧 Sending your QR code by email...</p>
+                    <p style="margin: 15px 0 5px; font-size:0.9rem; color:#666;">Prefer a copy on your device too? (optional)</p>
                     <button id="downloadBtn" class="btn-download" style="margin-top:5px;">📥 DOWNLOAD QR CODE</button>
                     <p id="downloadMsg" style="margin-top:10px; font-size:0.85rem; color: #666;">Tap the button above to save the QR image to your device</p>
                     <a id="manualOpenLink" href="#" target="_blank" rel="noopener" style="display:inline-block; margin-top:8px; font-size:0.85rem; color:#667eea; text-decoration:underline; font-weight:600;">Didn't download? Tap here to open the QR image directly</a>
                 </div>
 
-                <button id="closeSuccess" class="btn-submit" disabled>Download QR Code First</button>
+                <button id="closeSuccess" class="btn-submit">Close</button>
             </div>
         </div>
     </div>
